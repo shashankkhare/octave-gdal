@@ -1,3 +1,16 @@
+/*
+The MIT License (MIT)
+
+Copyright (C) 2015 Shashank Khare
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+*/
+
 #include <octave/oct.h>
 #include <octave/ov-struct.h>
 #include <octave/oct-map.h>
@@ -6,7 +19,7 @@
 #include <ogr_spatialref.h>
 #include "misc.h"
 
-#define GEOTIFF_DEBUG
+//#define GDALWRITE_DEBUG
 /*
 INPUT : 
 		 bands raster_data,
@@ -16,7 +29,7 @@ RETURNS: int return_code - 0 signifies success,
 
 */
 
-DEFUN_DLD (geotiffwrite, args, nargout, "geotiffwrite help string")
+DEFUN_DLD (gdalwrite, args, nargout, "gdalwrite <band data> <filepath> <metadata>")
 {
 	int nargin=args.length();
 	octave_value_list ret_list(1) ;
@@ -24,8 +37,8 @@ DEFUN_DLD (geotiffwrite, args, nargout, "geotiffwrite help string")
 	int XSize=0, YSize=0;
     bool option_set_statistics = false;
  
-#ifdef GEOTIFF_DEBUG
-	octave_stdout<< "geotiffwrite has " << nargin << " input args and " <<
+#ifdef GDALWRITE_DEBUG
+	octave_stdout<< "gdalwrite has " << nargin << " input args and " <<
 	nargout << "output arguments" << "\r\n";
 #endif
 
