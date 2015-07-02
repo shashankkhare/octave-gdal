@@ -1,3 +1,16 @@
+/*
+The MIT License (MIT)
+
+Copyright (C) 2015 Shashank Khare
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+*/
+
 #include <octave/oct.h>
 #include <octave/ov-struct.h>
 #include <octave/oct-map.h>
@@ -10,24 +23,23 @@
 
 void print_usage()
 {
-	octave_stdout << "Geotiffread expects two arguments - geotiff filename and data output format.\n";
+	octave_stdout << "GDALRead expects two arguments - geotiff filename and data output format.\n";
 }
 /*
 INPUT : string filepath
-RETURNS: int return code,
-		  matrix data,
-		  matrix bounding box ,
-		  struct metadata
+RETURNS: int containing return code,
+		 Cell array containing band data, 
+		 octave_scalar_map containing metadata
 */
 
-DEFUN_DLD (geotiffread, args, nargout, "geotiffread help string")
+DEFUN_DLD (gdalread, args, nargout, "gdalread <file path> <options>")
 {
 	int nargin=args.length();
 	octave_value_list ret_list(3) ;
 	int num_items=0;
 	int XSize=0, YSize=0;
-#ifdef GEOTIFF_DEBUG
-	octave_stdout<< "geotiffread has " << nargin << " input args and " <<
+#ifdef GDALREAD_DEBUG
+	octave_stdout<< "gdalread has " << nargin << " input args and " <<
 	             nargout << "output arguments" << "\r\n";
 #endif
 
@@ -53,10 +65,10 @@ DEFUN_DLD (geotiffread, args, nargout, "geotiffread help string")
 	int band_count = poDS->GetRasterCount();
 
 
-	if( poDS->GetGeoTransform( adfGeoTransform ) == CE_None ) {
-	} else {
+	if( !(poDS->GetGeoTransform( adfGeoTransform ) == CE_None) ) {
 		//error could not get geotransformation data
 		//put origin as 0,0 and pixel size as 1,1
+		//should not happen but if it does proceed with 0,0 as origin
 		adfGeoTransform[0] = 0;
 		adfGeoTransform[3] = 0;
 		adfGeoTransform[1] = 1;
@@ -74,7 +86,7 @@ DEFUN_DLD (geotiffread, args, nargout, "geotiffread help string")
 	//octave_scalar_map *band_struct;
 
 	for (curr_band=0; curr_band < band_count; curr_band++) {
-        Matrix raster_data,X,Y,raster_data_tmp,X_tmp,Y_tmp;
+        	Matrix raster_data,X,Y,raster_data_tmp,X_tmp,Y_tmp;
 		Matrix bbox(2,2);
 		octave_scalar_map band_struct;
 		poBand = poDS->GetRasterBand( curr_band+1 );
@@ -106,6 +118,7 @@ DEFUN_DLD (geotiffread, args, nargout, "geotiffread help string")
 			ret_list(0) = -1;
 			return ret_list;
 		}
+		// TODO: memcpy is not needed 
 		memcpy(data_ptr, pafScanline, sizeof(double)*rasterX*rasterY);
 
 		//line by line reading of raster...pretty inefficient
@@ -131,25 +144,25 @@ DEFUN_DLD (geotiffread, args, nargout, "geotiffread help string")
 				
         /*********** assign X,Y,Z, min,max to band struct **********/
         Matrix raster_data_transpose = raster_data.transpose();
+        /************** create X,Y matrices if specified*****************/
+		if (args(1).int_value() == 1) {
         Matrix X_trans = X.transpose();
         Matrix Y_trans = Y.transpose();
         
-        /************** create X,Y matrices if specified*****************/
-		if (args(1).int_value() == 1) {
 			//returns center x,y of cells in X,Y matrices.
 			for (int j=0; j < rasterY; j++)
 				for(int i=0; i<rasterX; i++) {
 					X_trans.elem(j,i) = minx + i*adfGeoTransform[1]+ adfGeoTransform[1]/2;
 					Y_trans.elem(j,i) = miny + j*adfGeoTransform[5] + adfGeoTransform[5]/2;
 				}
-		}
-
-       band_struct.assign(std::string("Z"), raster_data_transpose);
 		band_struct.assign(std::string("X"), X_trans);
 		band_struct.assign(std::string("Y"), Y_trans);
+		}
+
+       		band_struct.assign(std::string("Z"), raster_data_transpose);
 		band_struct.assign(std::string("min"), adfMinMax[0]);
 		band_struct.assign(std::string("max"), adfMinMax[1]);	
-	    int ndv_present = 0;	
+	        int ndv_present = 0;	
 		double ndvalue = poBand->GetNoDataValue(&ndv_present);
 		if (ndv_present)
 			band_struct.assign(std::string("ndv"), ndvalue);
