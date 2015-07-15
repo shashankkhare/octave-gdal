@@ -8,5 +8,5 @@ make clean
 make
 
 [Usage]
-[band_data, info, result] = gdalread (file_path)
-gdalwrite(file_path, band_data, info)
+[result, band_data, info] = gdalread (file_path)
+[result] = gdalwrite(file_path, band_data, info)
