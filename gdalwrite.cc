@@ -42,7 +42,7 @@ DEFUN_DLD (gdalwrite, args, nargout, "gdalwrite <band data> <filepath> <metadata
 	nargout << "output arguments" << "\r\n";
 #endif
 
-	if (nargin==0) {
+	if (nargin<3) {
   		ret_list(0)=-1;
 		return ret_list; 
 	};
@@ -54,7 +54,7 @@ DEFUN_DLD (gdalwrite, args, nargout, "gdalwrite <band data> <filepath> <metadata
 	Matrix geo_trans_data = metadata.contents(std::string("geotransformation")).matrix_value(); 
 	int raster_data_type = metadata.contents(std::string("datatype")).int_value();
 	std::string proj_wkt = metadata.contents(std::string("projection")).string_value();
-    int rows = metadata.contents(std::string("rows")).int_value();
+        int rows = metadata.contents(std::string("rows")).int_value();
 	int cols = metadata.contents(std::string("cols")).int_value();	
 	int num_bands = metadata.contents(std::string("bands")).int_value();
     if (nargin > 3) // if option is specified 
