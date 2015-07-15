@@ -1,0 +1,12 @@
+This project aims to develop c++ wrappers for gdal to provide GIS data read/write 
+capability to Octave.These wrappers can be used to develop .m extensions to create 
+matlab compatible API for reading and writing GIS data.
+
+
+[Build]
+make clean
+make
+
+[Usage]
+[band_data, info, result] = gdalread (file_path)
+gdalwrite(file_path, band_data, info)
